@@ -1,9 +1,15 @@
 package com.fiap.challenge.parking.controller;
 
-import com.fiap.challenge.parking.controller.dto.CondutorDTO;
+import com.fiap.challenge.parking.controller.dto.Condutor.CondutorPostRequestBody;
+import com.fiap.challenge.parking.controller.dto.Condutor.CondutorPostResponseBody;
+import com.fiap.challenge.parking.controller.dto.Condutor.CondutorPutRequestBody;
+import com.fiap.challenge.parking.controller.dto.Condutor.CondutorPutResponseBody;
+import com.fiap.challenge.parking.dominio.condutor.entidade.Condutor;
 import com.fiap.challenge.parking.services.CondutorService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -11,44 +17,38 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/condutor")
 public class CondutorController {
 
-    @Autowired
-    private CondutorService consdutorService;
+    private final CondutorService condutorService;
 
-//    @GetMapping
-//    public ResponseEntity<Page<CondutorDTO>> findAll(
-//            @RequestParam(value = "nome", defaultValue = "") String nome,
-//            Pageable pageable) {
-//        Page<CondutorDTO> page = consdutorService.findAllPaged(nome.trim(), pageable);
-//        return ResponseEntity.ok().body();
-//    }
+    @GetMapping
+    public ResponseEntity<Page<Condutor>> findAll(Pageable pageable) {
+        return ResponseEntity.ok().body(condutorService.findAllPaged(pageable));
+    }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<CondutorDTO> findById(@PathVariable Long id) {
-        CondutorDTO dto = consdutorService.findById(id);
-        return ResponseEntity.ok().body(dto);
+    public ResponseEntity<Condutor> findById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(condutorService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<CondutorDTO> insert(@Valid @RequestBody CondutorDTO pessoaDto) {
-        pessoaDto = consdutorService.insert(pessoaDto);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(pessoaDto.getId()).toUri();
-        return ResponseEntity.created(uri).body(pessoaDto);
+    public ResponseEntity<CondutorPostResponseBody> insert(@Valid @RequestBody CondutorPostRequestBody dto) {
+        CondutorPostResponseBody response = condutorService.insert(dto);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
+        return ResponseEntity.created(uri).body(response);
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<CondutorDTO> update(@PathVariable Long id, @Valid @RequestBody CondutorDTO dto) {
-
-        dto = consdutorService.update(id, dto);
-        return ResponseEntity.ok().body(dto);
+    public ResponseEntity<CondutorPutResponseBody> update(@PathVariable Long id, @Valid @RequestBody CondutorPutRequestBody req) {
+        CondutorPutResponseBody updated = condutorService.update(id, req);
+        return ResponseEntity.ok().body(updated);
     }
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-
-        consdutorService.delete(id);
+        condutorService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

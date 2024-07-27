@@ -1,55 +1,58 @@
 package com.fiap.challenge.parking.services;
 
-import com.fiap.challenge.parking.controller.dto.CondutorDTO;
+import com.fiap.challenge.parking.controller.dto.Condutor.CondutorPostRequestBody;
+import com.fiap.challenge.parking.controller.dto.Condutor.CondutorPostResponseBody;
+import com.fiap.challenge.parking.controller.dto.Condutor.CondutorPutRequestBody;
+import com.fiap.challenge.parking.controller.dto.Condutor.CondutorPutResponseBody;
 import com.fiap.challenge.parking.dominio.condutor.entidade.Condutor;
 import com.fiap.challenge.parking.repository.CondutorRepository;
-import com.fiap.challenge.parking.services.exceptions.ResourceNotFoundException;
+import com.fiap.challenge.parking.services.exceptions.BadRequestException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.print.Pageable;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CondutorService {
-    @Autowired
-    private CondutorRepository condutorRepositorio;
 
-//    @Transactional(readOnly = true)
-//    public Page<CondutorDTO> findAllPaged(String nome, String sexo, String parentesco, Pageable pageable) {
-//        Page<Condutor> page = condutorRepositorio.findById();
-//        return page.map(x -> new CondutorDTO(x));
-//    }
+    private final CondutorRepository condutorRepositorio;
+
+    @Transactional(readOnly = true)
+    public Page<Condutor> findAllPaged(Pageable pageable) {
+        return condutorRepositorio.findAll(pageable);
+    }
 
     @Transactional
-    public CondutorDTO insert(CondutorDTO dto) {
+    public CondutorPostResponseBody insert(CondutorPostRequestBody dto) {
         Condutor entity = new Condutor();
-        copyDtoToEntity(dto, entity);
+        requestBodyToEntity(dto, entity);
         entity = condutorRepositorio.save(entity);
-        return new CondutorDTO(entity);
+        return entityToResponseBody(entity);
     }
 
     @Transactional(readOnly = true)
-    public CondutorDTO findById(Long id) {
+    public Condutor findById(Long id) {
         Optional<Condutor> obj = condutorRepositorio.findById(id);
-        Condutor entity = obj.orElseThrow(() -> new ResourceNotFoundException("Objeto não encontrado, id: " + id));
-        return new CondutorDTO(entity);
+        Condutor entity = obj.orElseThrow(() -> new BadRequestException("Objeto não encontrado, id: " + id));
+        return entity;
     }
 
     @Transactional
-    public CondutorDTO update(Long id, CondutorDTO dto) {
+    public CondutorPutResponseBody update(Long id, CondutorPutRequestBody request) {
         try {
             Condutor entity = condutorRepositorio.getReferenceById(id);
-            copyDtoToEntity(dto, entity);
+            putRequestToEntity(request, entity);
             entity = condutorRepositorio.save(entity);
-            return new CondutorDTO(entity);
+            return new CondutorPutResponseBody(entity.getId());
         } catch (EntityNotFoundException e) {
-            throw new ResourceNotFoundException("Objeto não encontrado, id: " + id);
+            throw new BadRequestException("Objeto não encontrado, id: " + id);
         }
     }
 
@@ -57,13 +60,40 @@ public class CondutorService {
         try {
             condutorRepositorio.deleteById(id);
         } catch (EmptyResultDataAccessException e) {
-            throw new ResourceNotFoundException("Objeto não encontrado, id: " + id);
+            throw new BadRequestException("Objeto não encontrado, id: " + id);
         } catch (DataIntegrityViolationException e) {
 //            throw new DatabaseException("Violação de integridade!");
         }
     }
 
-    private void copyDtoToEntity(CondutorDTO CondutorDTO, Condutor pessoaEntity) {
-        pessoaEntity.setNome(CondutorDTO.getNome());
+    private void requestBodyToEntity(CondutorPostRequestBody dto, Condutor entity) {
+        entity.setNome(dto.nome());
+        entity.setCpf(dto.cpf());
+        entity.setEndereco(dto.endereco());
+        entity.setTelefone(dto.telefone());
+    }
+
+    private CondutorPostRequestBody entityToRequestBody(Condutor entity) {
+        return new CondutorPostRequestBody(
+                entity.getCpf(),
+                entity.getNome(),
+                entity.getEndereco(),
+                entity.getTelefone()
+        );
+    }
+
+    private void putRequestToEntity(CondutorPutRequestBody req, Condutor entity) {
+        entity.setNome(req.nome());
+        entity.setCpf(req.cpf());
+        entity.setEndereco(req.endereco());
+        entity.setTelefone(req.telefone());
+    }
+
+
+    private CondutorPostResponseBody entityToResponseBody(Condutor entity) {
+        return new CondutorPostResponseBody(
+                entity.getId(),
+                entity.getCpf()
+        );
     }
 }
