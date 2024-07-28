@@ -5,7 +5,6 @@ import com.fiap.challenge.parking.controller.dto.Veiculo.VeiculoPostResponseBody
 import com.fiap.challenge.parking.controller.dto.Veiculo.VeiculoPutRequestBody;
 import com.fiap.challenge.parking.controller.dto.Veiculo.VeiculoPutResponseBody;
 import com.fiap.challenge.parking.dominio.veiculo.entidade.Veiculo;
-import com.fiap.challenge.parking.dominio.veiculo.entidade.Veiculo;
 import com.fiap.challenge.parking.services.VeiculoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
