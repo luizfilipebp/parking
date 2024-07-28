@@ -30,8 +30,6 @@ public class VeiculoService {
         return veiculoRepositorio.findAll(pageable);
     }
 
-
-
     @Transactional
     public VeiculoPostResponseBody insert(VeiculoPostRequestBody dto) {
         Veiculo entity = new Veiculo();
